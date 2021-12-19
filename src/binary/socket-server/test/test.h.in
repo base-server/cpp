@@ -1,0 +1,97 @@
+#pragma once
+
+#include <string>
+using namespace std;
+
+#include "gtest/gtest.h"
+
+#include "ThreadPool.h"
+#include "SocketClient.h"
+#include "SocketServerConfig.h"
+
+static const string GstrBinaryPath = "${CMAKE_BINARY_DIR}/install";
+static const string GstrConfigPath = "${PROJECT_SOURCE_DIR}/test_data/config";
+
+static inline int main_sub(const bool &bStandAlone);
+static inline bool binary_start(const bool &bStandAlone);
+static inline bool binary_stop();
+static inline string send_command(const string &strCommand, const bool &bAdmin);
+
+static inline int main_sub(const bool &bStandAlone)
+{
+	ThreadPool threadPool(1);
+
+	future<bool> future = threadPool.AddJob(binary_start, true);
+	this_thread::sleep_for(chrono::seconds(1));
+
+	const int iResult = RUN_ALL_TESTS();
+
+	EXPECT_TRUE(binary_stop());
+
+	EXPECT_TRUE(future.get());
+
+	return iResult;
+}
+
+static inline bool binary_start(const bool &bStandAlone)
+{
+	const string strCommand = GstrBinaryPath + "/socket-server -c " + GstrConfigPath + (bStandAlone ? " -s" : "");
+
+	EXPECT_EQ(system(strCommand.c_str()), 0);
+
+	return true;
+}
+
+static inline bool binary_stop()
+{
+	EXPECT_STREQ(send_command("stop", true).c_str(), "200 ok\r\n");
+
+	return true;
+}
+
+static inline string send_command(const string &strCommand, const bool &bAdmin)
+{
+	SocketServerConfig socketServerConfig;
+	EXPECT_TRUE(socketServerConfig.Initialize(GstrConfigPath));
+
+	const int iPort = bAdmin ? socketServerConfig.GetAdminPort() : socketServerConfig.GetUserPort();
+	const int iTimeout = bAdmin ? socketServerConfig.GetAdminTimeout() : socketServerConfig.GetUserTimeout();
+
+	SocketClient socketClient("127.0.0.1", iPort, iTimeout);
+
+	bool bEnd = false;
+	string strRead = "";
+	EXPECT_TRUE(socketClient.Read(strRead, 1024, bEnd));
+	EXPECT_STREQ(strRead.c_str(), "=== greeting ===\r\n");
+
+	if(strCommand == "timeout") {
+		this_thread::sleep_for(chrono::seconds(iTimeout + 1));
+		return "";
+	}
+
+	string strFinalCommand = "";
+	if(strCommand == "too_long_line") {
+		for(int i = 0 ; i < 2048 ; i++) {
+			strFinalCommand += "a";
+		}
+	} else {
+		strFinalCommand = strCommand;
+	}
+	EXPECT_TRUE(socketClient.Write(strFinalCommand + "\r\n"));
+
+	string strResult = "";
+	if(!(bAdmin == false && strCommand == "quit")) {
+		EXPECT_TRUE(socketClient.Read(strResult, 1024, bEnd));
+	}
+
+	if(strCommand != "quit" && strCommand != "stop") {
+		EXPECT_TRUE(socketClient.Write("quit\r\n"));
+
+		if(bAdmin) {
+			EXPECT_TRUE(socketClient.Read(strRead, 1024, bEnd));
+			EXPECT_STREQ(strRead.c_str(), "200 ok\r\n");
+		}
+	}
+
+	return strResult;
+}
