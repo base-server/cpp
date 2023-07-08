@@ -3,23 +3,24 @@
 #include "Config.h"
 
 class SocketServerConfig : public Config {
-private:
-	int iAdminPort;
-	int iAdminTimeout;
+	private:
+		int adminPort;
+		int adminTimeout;
 
-	int iUserPort;
-	int iUserTimeout;
-	int iUserJobPoolSize;
+		int userPort;
+		int userTimeout;
+		int userJobPoolSize;
 
-	virtual bool InitializeDerived();
-public:
-	SocketServerConfig();
-	virtual ~SocketServerConfig() = default;
+		virtual bool InitializeDerived() final;
 
-	int GetAdminPort();
-	int GetAdminTimeout();
+	public:
+		SocketServerConfig();
+		virtual ~SocketServerConfig() = default;
 
-	int GetUserPort();
-	int GetUserTimeout();
-	int GetUserJobPoolSize();
+		int GetAdminPort() const;
+		int GetAdminTimeout() const;
+
+		int GetUserPort() const;
+		int GetUserTimeout() const;
+		int GetUserJobPoolSize() const;
 };

@@ -1,25 +1,33 @@
-#include <iostream>
+#include "Main.h"
+#include "AdminChildProcess.h"
+#include "EnvironmentVariable.h"
+#include "ParentProcess.h"
+#include "Singleton.h"
+#include "UserChildProcess.h"
+#include <cstdio>
+#include <memory>
+#include <vector>
+
 using namespace std;
 
-#include "FileLog.h"
-#include "Singleton.h"
-#include "ParentProcess.h"
-#include "EnvironmentVariable.h"
-#include "SocketServerChildProcess.h"
+bool Main::Run(int argc, char *argv[]) {
+	vector<unique_ptr<ChildProcess>> processes = {};
+	processes.push_back(make_unique<AdminChildProcess>());
+	processes.push_back(make_unique<UserChildProcess>());
 
-#include "Main.h"
-
-bool Main::Run(int iArgc, char *pcArgv[])
-{
-	DEBUG_G(__PRETTY_FUNCTION__);
-
-	if(Singleton<EnvironmentVariable>::Instance().Initialize(iArgc, pcArgv) == false) {
-		ERROR_L_G(Singleton<EnvironmentVariable>::Instance().Usage());
+	if (Singleton<EnvironmentVariable>::Instance().Initialize(argc, argv) ==
+		false) {
+		printf("%s\n",
+			   Singleton<EnvironmentVariable>::Instance().Usage().c_str());
 		return false;
 	}
 
-	if(ParentProcess(make_unique<SocketServerChildProcess>()).Start() == false) {
-		ERROR_L_G("ParentProcess Start fail");
+	const auto standAlone =
+		Singleton<EnvironmentVariable>::Instance().GetStandAlone();
+	const auto binaryName =
+		Singleton<EnvironmentVariable>::Instance().GetBinaryName();
+	if (ParentProcess(standAlone, binaryName, processes).Start() == false) {
+		printf("ParentProcess Start fail");
 		return false;
 	}
 

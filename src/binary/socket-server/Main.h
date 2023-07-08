@@ -1,11 +1,10 @@
 #pragma once
 
 class Main {
-private:
+	private:
+	public:
+		Main() = default;
+		~Main() = default;
 
-public:
-	Main() = default;
-	virtual ~Main() = default;
-
-	bool Run(int iArgc, char *pcArgv[]);
+		bool Run(int argc, char *argv[]);
 };
