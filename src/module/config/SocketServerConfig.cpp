@@ -1,54 +1,29 @@
-#include "FileLog.h"
-#include "JsonManager.h"
-
 #include "SocketServerConfig.h"
 
 SocketServerConfig::SocketServerConfig()
-	: Config("socket_server.config"),
-		iAdminPort(0),
-		iAdminTimeout(0),
-		iUserPort(0),
-		iUserTimeout(0),
-		iUserJobPoolSize(0)
-{
-	DEBUG_G(__PRETTY_FUNCTION__);
-}
+	: Config("socket_server.config"), adminPort(0), adminTimeout(0),
+	  userPort(0), userTimeout(0), userJobPoolSize(0) {}
 
-bool SocketServerConfig::InitializeDerived()
-{
-	DEBUG_G(__PRETTY_FUNCTION__);
+bool SocketServerConfig::InitializeDerived() {
+	this->adminPort = this->json->GetValue<int64_t>({"admin_port"});
+	this->adminTimeout = this->json->GetValue<int64_t>({"admin_timeout"});
 
-	this->iAdminPort = this->jsonManager.GetValue<int>({"admin_port"});
-	this->iAdminTimeout = this->jsonManager.GetValue<int>({"admin_timeout"});
-
-	this->iUserPort = this->jsonManager.GetValue<int>({"user_port"});
-	this->iUserTimeout = this->jsonManager.GetValue<int>({"user_timeout"});
-	this->iUserJobPoolSize = this->jsonManager.GetValue<int>({"user_job_pool_size"});
+	this->userPort = this->json->GetValue<int64_t>({"user_port"});
+	this->userTimeout = this->json->GetValue<int64_t>({"user_timeout"});
+	this->userJobPoolSize =
+		this->json->GetValue<int64_t>({"user_job_pool_size"});
 
 	return true;
 }
 
-int SocketServerConfig::GetAdminPort()
-{
-	return this->iAdminPort;
-}
+int SocketServerConfig::GetAdminPort() const { return this->adminPort; }
 
-int SocketServerConfig::GetAdminTimeout()
-{
-	return this->iAdminTimeout;
-}
+int SocketServerConfig::GetAdminTimeout() const { return this->adminTimeout; }
 
-int SocketServerConfig::GetUserPort()
-{
-	return this->iUserPort;
-}
+int SocketServerConfig::GetUserPort() const { return this->userPort; }
 
-int SocketServerConfig::GetUserTimeout()
-{
-	return this->iUserTimeout;
-}
+int SocketServerConfig::GetUserTimeout() const { return this->userTimeout; }
 
-int SocketServerConfig::GetUserJobPoolSize()
-{
-	return this->iUserJobPoolSize;
+int SocketServerConfig::GetUserJobPoolSize() const {
+	return this->userJobPoolSize;
 }
