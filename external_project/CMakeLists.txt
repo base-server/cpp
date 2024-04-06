@@ -1,4 +1,4 @@
-add_subdirectory(common-library-cpp)
+add_subdirectory(common-library)
 
 if(ENABLE_TEST)
 	add_subdirectory(googletest)
