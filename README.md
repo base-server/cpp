@@ -19,7 +19,7 @@
  - gcc version 13.1.0
 
 ### Build System
- - cmake version 3.12.0 or higher
+ - cmake version 3.14.0 or higher
 
 <br/>
 
