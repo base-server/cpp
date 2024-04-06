@@ -1,4 +1,4 @@
-# base-server-cpp
+# Base Server for C++
 
 ## Features
  - socket server
